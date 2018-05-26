@@ -1,6 +1,6 @@
 # Gopkg.toml example
 #
-# Refer to https://github.com/golang/dep/blob/master/docs/Gopkg.toml.md
+# Refer to https://golang.github.io/dep/docs/Gopkg.toml.html
 # for detailed Gopkg.toml documentation.
 #
 # required = ["github.com/user/thing/cmd/thing"]
@@ -16,25 +16,29 @@
 #   source = "github.com/myfork/project2"
 #
 # [[override]]
-#  name = "github.com/x/y"
-#  version = "2.4.0"
+#   name = "github.com/x/y"
+#   version = "2.4.0"
+#
+# [prune]
+#   non-go = false
+#   go-tests = true
+#   unused-packages = true
 
-ignored = ["golang.org/x/exp/inotify"]
 
 [[constraint]]
   name = "cloud.google.com/go"
-  version = "0.21.0"
+  version = "0.23.0"
 
 [[constraint]]
   branch = "master"
   name = "github.com/golang/glog"
 
 [[constraint]]
-  branch = "master"
+  version = "kubernetes-1.10.4"
   name = "k8s.io/api"
 
 [[constraint]]
-  branch = "master"
+  version = "kubernetes-1.10.4"
   name = "k8s.io/apimachinery"
 
 [[constraint]]
@@ -43,4 +47,8 @@ ignored = ["golang.org/x/exp/inotify"]
 
 [[constraint]]
   name = "k8s.io/kubernetes"
-  version = "1.10.1"
+  version = "1.10.4"
+
+[prune]
+  go-tests = true
+  unused-packages = true
