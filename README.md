@@ -8,7 +8,7 @@ Do not consume this project unless you are managing k8s clusters that run non mi
 
 To deploy this solution to a GKE or a GCE cluster:
 ```shell
-kubectl apply -f deploy/k8s.yaml
+kubectl apply -f deploy/
 ```
 
 **Note**: This solution requires kubernetes versions >= 1.11 to work on Preemptible nodes.

@@ -35,7 +35,7 @@ spec:
       # Necessary only when re-using kubelet's Service Accounts is not possible.
       # When enabling this ensure that rbac.yaml is applied and kubelet SA and CRT mounted
       # below are removed.
-      #serviceAccountName: node-termination-handler
+      serviceAccountName: node-termination-handler
       affinity:
         nodeAffinity:
          # Restrict to GPU nodes or preemptible nodes
@@ -70,18 +70,18 @@ spec:
           limits:
             cpu: 150m
             memory: 30Mi
-        volumeMounts:
-        - name: klet-service-account
-          mountPath: /var/lib/kubelet
-        - name: klet-ca-crt
-          mountPath: /etc/srv/kubernetes
-      volumes:
-        - name: klet-service-account
-          hostPath:
-            path: /var/lib/kubelet
-        - name: klet-ca-crt
-          hostPath:
-            path: /etc/srv/kubernetes
+      #   volumeMounts:
+      #   - name: klet-service-account
+      #     mountPath: /var/lib/kubelet
+      #   - name: klet-ca-crt
+      #     mountPath: /etc/srv/kubernetes
+      # volumes:
+      #   - name: klet-service-account
+      #     hostPath:
+      #       path: /var/lib/kubelet
+      #   - name: klet-ca-crt
+      #     hostPath:
+      #       path: /etc/srv/kubernetes
       tolerations:
       # Run regardless of any existing taints.
       - effect: NoSchedule
