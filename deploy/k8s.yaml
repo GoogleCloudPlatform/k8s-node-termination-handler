@@ -32,9 +32,6 @@ spec:
     spec:
       # Necessary to reboot node
       hostPID: true
-      # Necessary only when re-using kubelet's Service Accounts is not possible.
-      # When enabling this ensure that rbac.yaml is applied and kubelet SA and CRT mounted
-      # below are removed.
       serviceAccountName: node-termination-handler
       affinity:
         nodeAffinity:
@@ -49,10 +46,10 @@ spec:
                 operator: Exists
       containers:
         # TODO: Update to an official image once the build is automated via GCB.
-      - image: gcr.io/vishnuk-cloud/node-termination-handler@sha256:66f68f10cb552cba66ebadd038c958d275e88b2dba59f242f6ab661fccfec0d7
+      - image: gcr.io/vishnuk-cloud/gke-node-termination-handler@sha256:d733806b403567478e8f4e772664c2f3896c6ac894c1f927c698513c26528448
         name: node-termination-handler
         command: ["./node-termination-handler"]
-        args: ["--logtostderr", "--exclude-pods=$(POD_NAME):$(POD_NAMESPACE)", "--kubeconfig=/var/lib/kubelet/kubeconfig", "-v=10"]
+        args: ["--logtostderr", "--exclude-pods=$(POD_NAME):$(POD_NAMESPACE)", "-v=10"]
         securityContext:
           capabilities:
             # Necessary to reboot node
@@ -70,18 +67,6 @@ spec:
           limits:
             cpu: 150m
             memory: 30Mi
-      #   volumeMounts:
-      #   - name: klet-service-account
-      #     mountPath: /var/lib/kubelet
-      #   - name: klet-ca-crt
-      #     mountPath: /etc/srv/kubernetes
-      # volumes:
-      #   - name: klet-service-account
-      #     hostPath:
-      #       path: /var/lib/kubelet
-      #   - name: klet-ca-crt
-      #     hostPath:
-      #       path: /etc/srv/kubernetes
       tolerations:
       # Run regardless of any existing taints.
       - effect: NoSchedule
