@@ -14,8 +14,8 @@
 GO := go
 DOCKER := docker
 TAG?=$(shell git rev-parse HEAD)
-REGISTRY?=gcr.io/google-containers
-IMAGE=node-termination-handler
+REGISTRY?=gcr.io/k8s-image-staging
+IMAGE=gke-node-termination-handler
 
 all: presubmit build
 
