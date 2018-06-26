@@ -31,6 +31,7 @@ const (
 	trueString                         = "TRUE"
 	maintenanceEventSuffix             = "instance/maintenance-event"
 	maintenanceEventNone               = "NONE"
+	maintenanceEventFalse              = "FALSE"
 	preemptedEventSuffix               = "instance/preempted"
 	preemptibleNodeTerminationDuration = 30 * time.Second
 )
@@ -133,11 +134,12 @@ func (g *gceTerminationSource) handleMaintenanceEvents(state string, exists bool
 		return nil
 	}
 	glog.Infof("Handling maintenance event with state: %q", state)
-	if (g.state.NeedsReboot && state != maintenanceEventNone) ||
-		(!g.state.NeedsReboot && state == trueString) {
+	if (g.state.NeedsReboot && (state != maintenanceEventNone && state != maintenanceEventFalse)) || (!g.state.NeedsReboot && state == trueString) {
+		glog.Infof("Recording impending termination")
 		g.storePendingTermination()
 		g.updateChannel <- g.state
 	} else {
+		glog.Infof("Removing any impending termination records")
 		g.resetPendingTermination()
 		g.updateChannel <- g.state
 	}

@@ -46,7 +46,7 @@ spec:
                 operator: Exists
       containers:
         # TODO: Update to an official image once the build is automated via GCB.
-      - image: gcr.io/vishnuk-cloud/gke-node-termination-handler@sha256:d733806b403567478e8f4e772664c2f3896c6ac894c1f927c698513c26528448
+      - image: gcr.io/k8s-image-staging/gke-node-termination-handler@sha256:4021de850add0e7b86fa8e8339c5d12e95613126d659366768f8a41df03fdfd9
         name: node-termination-handler
         command: ["./node-termination-handler"]
         args: ["--logtostderr", "--exclude-pods=$(POD_NAME):$(POD_NAMESPACE)", "-v=10"]

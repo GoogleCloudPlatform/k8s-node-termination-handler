@@ -55,6 +55,7 @@ func (n *nodeTaintHandler) ApplyTaint() error {
 		return err
 	}
 	updatedNode, updated := addOrUpdateTaint(node, &n.taint)
+	glog.V(4).Infof("Node %q taints after removal; updated %v: %v", n.node, updated, node.Spec.Taints)
 	if updated {
 		if _, err = n.client.CoreV1().Nodes().Update(updatedNode); err != nil {
 			glog.V(2).Infof("Failed to apply taint: %v", err)
