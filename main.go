@@ -42,7 +42,8 @@ var (
 	excludePodsVar      = flag.String("exclude-pods", "", "List of pods to exclude from graceful eviction. Expected format is comma separated 'podName:podNamespace'.")
 	kubeconfig          *string
 	// TODO: Update this to use NoExecute taints once that graduates out of alpha.
-	taintVar                = flag.String("taint", "cloud.google.com/impending-node-termination::NoSchedule", "Taint to place on the node while handling terminations")
+	taintVar                = flag.String("taint", "", "Taint to place on the node while handling terminations. Example: cloud.google.com/impending-node-termination::NoSchedule")
+	annotationVar           = flag.String("annotation", "", "Annotation to set on Node objects while handling terminations")
 	systemPodGracePeriodVar = flag.Duration("system-pod-grace-period", 30*time.Second, "Time required for system pods to exit gracefully.")
 )
 
@@ -61,6 +62,9 @@ func main() {
 	if err != nil {
 		glog.Fatal(err)
 	}
+	if *taintVar == "" && *annotationVar == "" {
+		glog.Fatalf("Must specify one of taint or annotation")
+	}
 	taint, err := processTaint()
 	if err != nil {
 		glog.Fatal(err)
@@ -75,7 +79,7 @@ func main() {
 		glog.Fatal(err)
 	}
 	nodeName := gceTerminationSource.GetState().NodeName
-	taintHandler := termination.NewNodeTaintHandler(*taint, nodeName, client, recorder)
+	taintHandler := termination.NewNodeTaintHandler(*taint, *annotationVar, nodeName, client, recorder)
 	evictionHandler := termination.NewPodEvictionHandler(nodeName, client, recorder, *systemPodGracePeriodVar)
 	terminationHandler := termination.NewNodeTerminationHandler(gceTerminationSource, taintHandler, evictionHandler, excludePods)
 	err = terminationHandler.Start()
@@ -119,6 +123,12 @@ func processExcludePods() (map[string]string, error) {
 }
 
 func processTaint() (*v1.Taint, error) {
+	if len(*annotationVar) != 0 && len(*taintVar) != 0 {
+		return nil, fmt.Errorf("Annotation must not be specified when taints are specified")
+	}
+	if len(*taintVar) == 0 {
+		return nil, nil
+	}
 	parts := strings.Split(*taintVar, ":")
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("Invalid value specified for --taint flag. Expected format 'name:value:effect'. Input is %q", *taintVar)
