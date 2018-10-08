@@ -79,7 +79,7 @@ func main() {
 		glog.Fatal(err)
 	}
 	nodeName := gceTerminationSource.GetState().NodeName
-	taintHandler := termination.NewNodeTaintHandler(*taint, *annotationVar, nodeName, client, recorder)
+	taintHandler := termination.NewNodeTaintHandler(taint, *annotationVar, nodeName, client, recorder)
 	evictionHandler := termination.NewPodEvictionHandler(nodeName, client, recorder, *systemPodGracePeriodVar)
 	terminationHandler := termination.NewNodeTerminationHandler(gceTerminationSource, taintHandler, evictionHandler, excludePods)
 	err = terminationHandler.Start()
@@ -106,6 +106,7 @@ func getKubeClient() (*kubernetes.Clientset, error) {
 			return nil, err
 		}
 	}
+	glog.V(10).Infof("Using kube config: %+v", config)
 	// creates the clientset
 	return kubernetes.NewForConfig(config)
 }

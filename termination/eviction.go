@@ -20,8 +20,10 @@ import (
 	"github.com/golang/glog"
 
 	"k8s.io/api/core/v1"
+	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/util/wait"
 	client "k8s.io/client-go/kubernetes"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/tools/record"
@@ -100,5 +102,25 @@ func (p *podEvictionHandler) deletePods(pods []v1.Pod, deleteOptions *metav1.Del
 			return err
 		}
 	}
+	// wait for pods to be actually deleted since deletion is asynchronous & pods have a deletion grace period to exit gracefully.
+	for _, pod := range pods {
+		if err := p.waitForPodNotFound(pod.Name, pod.Namespace, time.Duration(*deleteOptions.GracePeriodSeconds)*time.Second); err != nil {
+			glog.Errorf("Pod %q/%q did not get deleted within grace period %d seconds: %v", pod.Namespace, pod.Name, deleteOptions.GracePeriodSeconds, err)
+		}
+	}
 	return nil
+}
+
+// waitForPodNotFound returns an error if it takes too long for the pod to fully terminate.
+func (p *podEvictionHandler) waitForPodNotFound(podName, ns string, timeout time.Duration) error {
+	return wait.PollImmediate(time.Second, timeout, func() (bool, error) {
+		_, err := p.client.Pods(ns).Get(podName, metav1.GetOptions{})
+		if apierrs.IsNotFound(err) {
+			return true, nil // done
+		}
+		if err != nil {
+			return true, err // stop wait with error
+		}
+		return false, nil
+	})
 }

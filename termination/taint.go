@@ -24,7 +24,7 @@ import (
 )
 
 type nodeTaintHandler struct {
-	taint      v1.Taint
+	taint      *v1.Taint
 	annotation string
 	node       string
 	client     *client.Clientset
@@ -36,7 +36,7 @@ const (
 	untaintReason = "NoImpendingNodeTermination"
 )
 
-func NewNodeTaintHandler(taint v1.Taint, annotation, node string, client *client.Clientset, recorder record.EventRecorder) NodeTaintHandler {
+func NewNodeTaintHandler(taint *v1.Taint, annotation, node string, client *client.Clientset, recorder record.EventRecorder) NodeTaintHandler {
 	return &nodeTaintHandler{
 		taint:      taint,
 		annotation: annotation,
@@ -62,7 +62,7 @@ func (n *nodeTaintHandler) ApplyTaint() error {
 		node.Annotations[n.annotation] = "true"
 		updated = true
 	} else {
-		node, updated = addOrUpdateTaint(node, &n.taint)
+		node, updated = addOrUpdateTaint(node, n.taint)
 		glog.V(4).Infof("Node %q taints after removal; updated %v: %v", n.node, updated, node.Spec.Taints)
 	}
 	if updated {
@@ -86,7 +86,7 @@ func (n *nodeTaintHandler) RemoveTaint() error {
 		node.Annotations[n.annotation] = "false"
 		updated = true
 	} else {
-		node, updated = removeTaint(node, &n.taint)
+		node, updated = removeTaint(node, n.taint)
 	}
 	if updated {
 		if _, err = n.client.CoreV1().Nodes().Update(node); err != nil {
