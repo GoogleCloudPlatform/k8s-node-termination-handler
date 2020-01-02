@@ -62,6 +62,9 @@ func (n *nodeTerminationHandler) processNodeState() error {
 		timeout = timeout - time.Minute
 	}
 	glog.V(4).Infof("Applying taint prior to handling termination")
+	if err := sendSlack(); err != nil {
+		glog.Errorf("Failed to send slack: %v", err)
+	}
 	if err := n.taintHandler.ApplyTaint(); err != nil {
 		return err
 	}
