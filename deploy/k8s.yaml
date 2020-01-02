@@ -63,6 +63,8 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
+          - name: SLACK_WEBHOOK_URL
+            value: ""
         resources:
           limits:
             cpu: 150m
