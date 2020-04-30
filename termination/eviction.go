@@ -73,10 +73,10 @@ func (p *podEvictionHandler) EvictPods(excludePods map[string]string, timeout ti
 		}
 	}
 	// Evict regular pods first.
-	var gracePeriod int64
+	gracePeriod := int64(timeout.Seconds())
 	// Reserve time for system pods if regular pods have adequate time to exit gracefully.
 	if timeout >= 2*p.systemPodGracePeriod {
-		gracePeriod = int64(timeout.Seconds() - p.systemPodGracePeriod.Seconds())
+		gracePeriod -= int64(p.systemPodGracePeriod.Seconds())
 	}
 	deleteOptions := &metav1.DeleteOptions{GracePeriodSeconds: &gracePeriod}
 	if err := p.deletePods(regularPods, deleteOptions); err != nil {
@@ -96,7 +96,7 @@ func (p *podEvictionHandler) deletePods(pods []v1.Pod, deleteOptions *metav1.Del
 	for _, pod := range pods {
 		p.recorder.Eventf(&pod, v1.EventTypeWarning, eventReason, "Node %q is about to be terminated. Evicting pod prior to node termination.", p.node)
 		// Delete the pod with the specified timeout.
-		glog.V(4).Infof("About to delete pod %q in namespace %q", pod.Name, pod.Namespace)
+		glog.V(4).Infof("About to delete pod %q in namespace %q with grace period %d seconds", pod.Name, pod.Namespace, *deleteOptions.GracePeriodSeconds)
 		if err := p.client.Pods(pod.Namespace).Delete(pod.Name, deleteOptions); err != nil {
 			glog.V(2).Infof("Failed to delete pod %q in namespace %q - %v", pod.Name, pod.Namespace, err)
 			return err
@@ -105,7 +105,7 @@ func (p *podEvictionHandler) deletePods(pods []v1.Pod, deleteOptions *metav1.Del
 	// wait for pods to be actually deleted since deletion is asynchronous & pods have a deletion grace period to exit gracefully.
 	for _, pod := range pods {
 		if err := p.waitForPodNotFound(pod.Name, pod.Namespace, time.Duration(*deleteOptions.GracePeriodSeconds)*time.Second); err != nil {
-			glog.Errorf("Pod %q/%q did not get deleted within grace period %d seconds: %v", pod.Namespace, pod.Name, deleteOptions.GracePeriodSeconds, err)
+			glog.Errorf("Pod %q/%q did not get deleted within grace period %d seconds: %v", pod.Namespace, pod.Name, *deleteOptions.GracePeriodSeconds, err)
 		}
 	}
 	return nil
