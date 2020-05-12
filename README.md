@@ -32,7 +32,11 @@ The pods that are not in the kube-system are called **regular pods** in this age
 By default, regular pods are deleted immediately before deleting system pods.
 If you want to delete regular pods gracefully, please add `--system-pod-grace-period=n` in arguments according to the following rules:
 
-- If targeted VM is Preemptible VM, specify `n` with a value from `0s` to `15s`.
-- If targeted VM is regular VM, specify `n` with a value from `0s` to the value of `--regular-vm-timeout/2`.
+- If targeted VM is Preemptible VM, specify `n` with a value from `0s` to `14s`.
+- If targeted VM is regular VM, specify `n` with a value from `0s` to the value of `(--regular-vm-timeout / 2) - 1`.
 
 If you follow the rules above, `VM timeout - system-grace-pod-period` will be given as a grace period for deleting regular pods.
+
+Also, `the timeout value of VM (e.g. preemptible=30s) / 2` cannot be used as a maximum value for the `--system-pod-grace-period`.
+This is because internally, the timing at which these delete events are triggered by a subscriber to GCE's Metadata API is different from the timing of the actual delete process.
+In other words, with proper consideration of the elapsed time, it's not possible to take advantage of all the duration remaining from the time a VM is known to be scheduled to delete until the VM is deleted actually.
