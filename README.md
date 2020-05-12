@@ -25,3 +25,14 @@ The app deployed as part of this solution does the following:
 
 The agent crashes whenever it encounters an unrecoverable error with the metadata APIs.
 This agent is not production hardened yet and so use it with caution.
+
+## Graceful terminations for regular pods (Non-system pods)
+
+The pods that are not in the kube-system are called **regular pods** in this agent.
+By default, regular pods are deleted immediately before deleting system pods.
+If you want to delete regular pods gracefully, please add `--system-pod-grace-period=n` in arguments according to the following rules:
+
+- If targeted VM is Preemptible VM, specify `n` with a value from `0s` to `15s`.
+- If targeted VM is regular VM, specify `n` with a value from `0s` to the value of `--regular-vm-timeout/2`.
+
+If you follow the rules above, `VM timeout - system-grace-pod-period` will be given as a grace period for deleting regular pods.
