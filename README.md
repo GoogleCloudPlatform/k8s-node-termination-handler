@@ -38,5 +38,7 @@ If you want to delete regular pods gracefully, please add `--system-pod-grace-pe
 If you follow the rules above, `VM timeout - system-grace-pod-period` will be given as a grace period for deleting regular pods.
 
 Also, `the timeout value of VM (e.g. preemptible=30s) / 2` cannot be used as a maximum value for the `--system-pod-grace-period`.
-This is because internally, the timing at which these delete events are triggered by a subscriber to GCE's Metadata API is different from the timing of the actual delete process.
+This is because, the timing at which these delete events are triggered by a subscriber to GCE's Metadata API is different from the timing of the actual delete process.
 In other words, with proper consideration of the elapsed time, it's not possible to take advantage of all the duration remaining from the time a VM is known to be scheduled to delete until the VM is deleted actually.
+
+In addition, if the actual delete process fails, it will retry internally based on exponential backoff. In that case, the grace period is set considering the elapsed time, but it may shorten the actual grace period.
