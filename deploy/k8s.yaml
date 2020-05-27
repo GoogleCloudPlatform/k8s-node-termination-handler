@@ -30,6 +30,8 @@ spec:
       labels:
         name: node-termination-handler
     spec:
+      # Necessary to hit the node's metadata server when using Workload Identity
+      hostNetwork: true
       # Necessary to reboot node
       hostPID: true
       serviceAccountName: node-termination-handler
