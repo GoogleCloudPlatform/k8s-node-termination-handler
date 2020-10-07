@@ -1,0 +1,3 @@
+The agents are spinning up on each node in your cluster. It provides an adapter for translating GCE node termination events to graceful pod terminations in Preemptible VMs and VMs with Accelerators.
+
+No further action should be required.

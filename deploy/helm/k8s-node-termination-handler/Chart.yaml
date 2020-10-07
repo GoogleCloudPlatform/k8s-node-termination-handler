@@ -1,0 +1,5 @@
+apiVersion: v2
+appVersion: "1.0"
+description: A Helm chart for Kubernetes that provides an adapter for translating GCE node termination events to graceful pod terminations in Kubernetes.
+name: k8s-node-termination-handler
+version: 0.1.0

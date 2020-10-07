@@ -1,0 +1,88 @@
+{{- $serviceName := include "k8s-node-termination-handler.fullname" . -}}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "k8s-node-termination-handler.fullname" . }}
+  labels:
+    app: {{ template "k8s-node-termination-handler.name" . }}
+    app.kubernetes.io/name: {{ template "k8s-node-termination-handler.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ template "k8s-node-termination-handler.chart" . }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ template "k8s-node-termination-handler.name" . }}
+      app.kubernetes.io/name: {{ template "k8s-node-termination-handler.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+  updateStrategy:
+    type: {{ .Values.updateStrategy.type }}
+    {{- if (eq "Recreate" .Values.updateStrategy.type) }}
+    rollingUpdate: null
+    {{- end }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "k8s-node-termination-handler.name" . }}
+        app.kubernetes.io/name: {{ template "k8s-node-termination-handler.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        helm.sh/chart: {{ template "k8s-node-termination-handler.chart" . }}
+    spec:
+      {{ if .Values.gke_accelerator.enabled }}
+      hostPID: true
+      {{ end }}
+      serviceAccountName: {{ $serviceName }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            {{ if .Values.gke_accelerator.enabled }}
+            - matchExpressions:
+              - key: cloud.google.com/gke-accelerator
+                operator: Exists
+            {{ end  }}
+            {{ if .Values.gke_preemptible.enabled }}
+            - matchExpressions:
+              - key: cloud.google.com/gke-preemptible
+                operator: Exists
+            {{ end }}
+      containers:
+      - image: "{{ .Values.image.repository }}:{{ default .Chart.AppVersion .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: {{ .Chart.Name }}
+        command: ["./node-termination-handler"]
+        args: ["--logtostderr", "--exclude-pods=$(POD_NAME):$(POD_NAMESPACE)", "-v=10", "--taint=cloud.google.com/impending-node-termination::NoSchedule"]
+        securityContext:
+          capabilities:
+            add: ["SYS_BOOT"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        {{- if .Values.slack }}
+        - name: SLACK_WEBHOOK_URL
+          value: "{{ .Values.slack }}"
+        {{- end }}
+        resources:
+         {{- if or .Values.cpuRequest .Values.memoryRequest .Values.cpuLimit .Values.memoryLimit }}
+          requests:
+            cpu: {{ .Values.cpuRequest | quote }}
+            memory: {{ .Values.memoryRequest | quote }}
+          limits:
+            cpu: {{ .Values.cpuLimit | quote }}
+            memory: {{ .Values.memoryLimit | quote }}
+        {{- else }}
+{{ toYaml .Values.resources | indent 10 }}
+        {{- end }}
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+      - effect: NoExecute
+        operator: Exists

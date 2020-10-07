@@ -1,0 +1,26 @@
+# Default values for k8s-node-termination-handler.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: k8s.gcr.io/gke-node-termination-handler@sha256 
+  tag: aca12d17b222dfed755e28a44d92721e477915fb73211d0a0f8925a1fa847cca
+  pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    cpu: 150m
+    memory: 30Mi
+
+updateStrategy:
+  type: RollingUpdate
+
+rbac:
+  # rbac.pspEnabled: `true` if PodSecurityPolicy resources should be created
+  pspEnabled: true
+
+gke_accelerator:
+  enabled: false
+
+gke_preemptible:
+  enabled: true

@@ -1,0 +1,54 @@
+{{- $serviceName := include "k8s-node-termination-handler.fullname" . -}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app: {{ $serviceName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app.kubernetes.io/name:  {{ include "k8s-node-termination-handler.fullname" . }}-app-installer
+    helm.sh/chart: {{ include "k8s-node-termination-handler.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+rules:
+  # Allow Node Termination Handler to get and update nodes (for posting taints).
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "update"]
+  # Allow Node Termination Handler to create events
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+  # Allow Node Termination Handler to list and delete pods (for draining nodes)
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "delete"]
+---
+{{- $serviceName := include "k8s-node-termination-handler.fullname" . -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    app: {{ $serviceName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $serviceName }}
+subjects:
+- kind: ServiceAccount
+  name: {{ $serviceName }}
+  namespace: {{ .Release.Namespace }}
+
