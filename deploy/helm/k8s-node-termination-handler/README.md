@@ -25,5 +25,5 @@ This chart bootstraps an [adapter for translating GCE node termination events to
 ## Installing the Chart
 
 ```
-helm install <my-release> k8s-node-termination-handler-helm-chart --namespace <namespace> --set psp_reourceName=<podSecurityPolicy-name>
+helm install <my-release> k8s-node-termination-handler-helm-chart --namespace <namespace>
 ```
