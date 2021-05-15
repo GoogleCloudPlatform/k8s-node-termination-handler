@@ -1,3 +1,8 @@
+> ## :warning: Deprecation Notice
+> As of Kubernetes 1.20, Graceful Node Shutdown replaces the need for GCP Node termination handler.
+> GKE on versions 1.20+ enables Graceful Node Shutdown by default.
+> Refer to the [GKE documentation](https://cloud.google.com/kubernetes-engine/docs/how-to/preemptible-vms#kubernetes_preemptible_nodes) and Kubernetes documentation for more info about Graceful Node Shutdown ([docs](https://kubernetes.io/docs/concepts/architecture/nodes/#graceful-node-shutdown), [blog post](https://kubernetes.io/blog/2021/04/21/graceful-node-shutdown-beta/)).
+
 *This is not an official Google Project*
 
 # Kubernetes on GCP Node Termination Event Handler
