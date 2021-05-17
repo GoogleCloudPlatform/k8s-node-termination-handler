@@ -1,0 +1,67 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: {{ include "k8s-node-termination-handler.fullname" . }}
+  labels:
+    app: {{ template "k8s-node-termination-handler.name" . }}
+    app.kubernetes.io/name: {{ template "k8s-node-termination-handler.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ template "k8s-node-termination-handler.chart" . }}
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: '*'
+spec:
+  privileged: false
+  hostIPC: false
+  hostNetwork: true
+  hostPID: false
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  allowedCapabilities:
+    - '*'
+  fsGroup:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+    - '*'
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ include "k8s-node-termination-handler.fullname" . }}-psp
+  labels:
+    app: {{ template "k8s-node-termination-handler.name" . }}
+    app.kubernetes.io/name: {{ template "k8s-node-termination-handler.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ template "k8s-node-termination-handler.chart" . }}  
+rules:
+  - apiGroups: ['policy']
+    resources: ['podsecuritypolicies']
+    verbs:     ['use']
+    resourceNames:
+      - {{ template "k8s-node-termination-handler.fullname" . }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "k8s-node-termination-handler.fullname" . }}-psp
+  labels:
+    app: {{ template "k8s-node-termination-handler.name" . }}
+    app.kubernetes.io/name: {{ template "k8s-node-termination-handler.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    helm.sh/chart: {{ template "k8s-node-termination-handler.chart" . }}  
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "k8s-node-termination-handler.fullname" . }}-psp
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "k8s-node-termination-handler.fullname" . }}
+    namespace: {{ .Release.Namespace }}
