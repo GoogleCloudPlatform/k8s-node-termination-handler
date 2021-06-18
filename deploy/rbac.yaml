@@ -27,7 +27,6 @@ metadata:
   labels:
     k8s-app: node-termination-handler
   name: node-termination-handler
-  namespace: kube-system
 rules:
   # Allow Node Termination Handler to get and update nodes (for posting taints).
 - apiGroups: [""]
@@ -46,7 +45,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: node-termination-handler
-  namespace: kube-system
   labels:
     k8s-app: node-termination-handler
 roleRef:
