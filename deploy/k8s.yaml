@@ -37,7 +37,7 @@ spec:
       serviceAccountName: node-termination-handler
       affinity:
         nodeAffinity:
-         # Restrict to GPU nodes or preemptible nodes
+         # Restrict to GPU nodes or preemptible nodes or spot nodes
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
@@ -45,6 +45,9 @@ spec:
                 operator: Exists
             - matchExpressions:
               - key: cloud.google.com/gke-preemptible
+                operator: Exists
+            - matchExpressions:
+              - key: cloud.google.com/gke-spot
                 operator: Exists
       containers:
         # TODO: Update to an official image once the build is automated via GCB.
